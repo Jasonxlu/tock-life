@@ -54,31 +54,12 @@
 //!   - `data`: The index of the LED. Starts at 0.
 //!   - Return: `Ok(())` if the LED index was valid, `INVAL` otherwise.
 
-use kernel::hil::led;
 use kernel::syscall::{CommandReturn, SyscallDriver};
 use kernel::{ErrorCode, ProcessId};
 
 /// Syscall driver number.
 use crate::driver;
-pub const DRIVER_NUM: usize = driver::NUM::Led as usize;
-
-/// Holds the array of LEDs and implements a `Driver` interface to
-/// control them.
-pub struct LedDriver<'a, L: led::Led, const NUM_LEDS: usize> {
-    leds: &'a [&'a L; NUM_LEDS],
-}
-
-impl<'a, L: led::Led, const NUM_LEDS: usize> LedDriver<'a, L, NUM_LEDS> {
-    pub fn new(leds: &'a [&'a L; NUM_LEDS]) -> Self {
-        // Initialize all LEDs and turn them off
-        for led in leds.iter() {
-            led.init();
-            led.off();
-        }
-
-        Self { leds: leds }
-    }
-}
+pub const DRIVER_NUM: usize = driver::NUM::Life as usize;
 
 impl<L: led::Led, const NUM_LEDS: usize> SyscallDriver for LedDriver<'_, L, NUM_LEDS> {
     /// Control the LEDs.
