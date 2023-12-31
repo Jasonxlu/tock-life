@@ -2,57 +2,50 @@
 // SPDX-License-Identifier: Apache-2.0 OR MIT
 // Copyright Tock Contributors 2022.
 
-//! Provides userspace access to LEDs on a board.
+//! Provides a basic SyscallDriver implementation to demonstrate a simple operation.
 //!
-//! This allows for much more cross platform controlling of LEDs without having
-//! to know which of the GPIO pins exposed across the syscall interface are
-//! LEDs.
-//!
-//! This capsule takes an array of pins and the polarity of the LED (active high
-//! or active low). This allows the board to configure how the underlying GPIO
-//! must be controlled to turn on and off LEDs, such that the syscall driver
-//! interface can be agnostic to the LED polarity.
+//! The `LifeDriver` serves as a SyscallDriver that provides a few commands related to the meaning
+//! of life. This driver does not interact with any specific hardware device; instead, it offers
+//! a simple example to illustrate how a SyscallDriver can handle commands and return appropriate
+//! responses or errors.
 //!
 //! Usage
 //! -----
 //!
-//! ```rust
-//! # use kernel::static_init;
-//!
-//! let led_pins = static_init!(
-//!     [(&'static sam4l::gpio::GPIOPin, kernel::hil::gpio::ActivationMode); 3],
-//!     [(&sam4l::gpio::PA[13], kernel::hil::gpio::ActivationMode::ActiveLow),   // Red
-//!      (&sam4l::gpio::PA[15], kernel::hil::gpio::ActivationMode::ActiveLow),   // Green
-//!      (&sam4l::gpio::PA[14], kernel::hil::gpio::ActivationMode::ActiveLow)]); // Blue
-//! let led = static_init!(
-//!     capsules::led::LED<'static, sam4l::gpio::GPIOPin>,
-//!     capsules::led::LED::new(led_pins));
-//! ```
+//! Since the `LifeDriver` is a test/demo driver, it does not require specific initialization
+//! or configuration. You can simply use it as-is to handle commands related to the meaning of life.
 //!
 //! Syscall Interface
 //! -----------------
 //!
-//! - Stability: 2 - Stable
+//! - Stability: 1 - Unstable
 //!
-//! ### Command
+//! ### Commands
 //!
-//! All LED operations are synchronous, so this capsule only uses the `command`
-//! syscall.
+//! All operations provided by the `LifeDriver` are synchronous and utilize the `command` syscall.
 //!
 //! #### `command_num`
 //!
-//! - `0`: Return the number of LEDs on this platform.
+//! - `0`: Retrieve the meaning of life.
 //!   - `data`: Unused.
-//!   - Return: Number of LEDs.
-//! - `1`: Turn the LED on.
-//!   - `data`: The index of the LED. Starts at 0.
-//!   - Return: `Ok(())` if the LED index was valid, `INVAL` otherwise.
-//! - `2`: Turn the LED off.
-//!   - `data`: The index of the LED. Starts at 0.
-//!   - Return: `Ok(())` if the LED index was valid, `INVAL` otherwise.
-//! - `3`: Toggle the on/off state of the LED.
-//!   - `data`: The index of the LED. Starts at 0.
-//!   - Return: `Ok(())` if the LED index was valid, `INVAL` otherwise.
+//!   - Return: The meaning of life (42) as a `u32`.
+//! - `1`: Check if the provided data is the meaning of life.
+//!   - `data`: The value to check against the meaning of life (42).
+//!   - Return: `Ok(())` if the data matches 42; otherwise, returns `INVAL` error code.
+//!
+//! Example
+//! -------
+//!
+//! ```rust
+//! // Instantiate the LifeDriver
+//! let life_driver = capsules::life::LifeDriver::new();
+//!
+//! // Use the driver to get the meaning of life
+//! let result = life_driver.command(0, 0, 0, ProcessId::new(0)); // This should return 42 as a u32
+//!
+//! // Check if a value is the meaning of life
+//! let check_result = life_driver.command(1, 42, 0, ProcessId::new(0)); // This should return Ok(())
+//! ```
 
 use kernel::syscall::{CommandReturn, SyscallDriver};
 use kernel::{ErrorCode, ProcessId};
@@ -72,7 +65,7 @@ impl LifeDriver {
 }
 
 impl SyscallDriver for LifeDriver {
-    /// Control the LEDs.
+    /// Return the meaning of life
     ///
     /// ### `command_num`
     ///
@@ -83,13 +76,10 @@ impl SyscallDriver for LifeDriver {
     ///
     fn command(&self, command_num: usize, data: usize, _: usize, _: ProcessId) -> CommandReturn {
         match command_num {
-            // get number of LEDs
-            // TODO(Tock 3.0): TRD104 specifies that Command 0 should return Success, not SuccessU32,
-            // but this driver is unchanged since it has been stabilized. It will be brought into
-            // compliance as part of the next major release of Tock. See #3375.
+            // return the meaning of life
             0 => CommandReturn::success_u32(42 as u32),
 
-            // on
+            // return a failure code if the data is not 42
             1 => {
                 if data != 42 {
                     CommandReturn::failure(ErrorCode::INVAL) /* led out of range */
