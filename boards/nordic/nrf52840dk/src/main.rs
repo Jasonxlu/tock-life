@@ -235,6 +235,7 @@ pub struct Platform {
     kv_driver: &'static KVDriver,
     scheduler: &'static RoundRobinSched<'static>,
     systick: cortexm4::systick::SysTick,
+    life: &'static capsules_core::life::LifeDriver,
 }
 
 impl SyscallDriverLookup for Platform {
@@ -474,6 +475,9 @@ pub unsafe fn main() {
         LedLow::new(&nrf52840_peripherals.gpio_port[LED3_PIN]),
         LedLow::new(&nrf52840_peripherals.gpio_port[LED4_PIN]),
     ));
+
+    let life: &'static capsules_core::life::LifeDriver =
+        components::life::LifeComponent::new().finalize(());
 
     //--------------------------------------------------------------------------
     // TIMER
@@ -900,6 +904,7 @@ pub unsafe fn main() {
         pconsole,
         console,
         led,
+        life,
         gpio,
         rng,
         adc,
