@@ -64,14 +64,14 @@ pub const DRIVER_NUM: usize = driver::NUM::Life as usize;
 /// Implements a basic SyscallDriver without any specific device management.
 pub struct LifeDriver;
 
-impl BasicDriver {
+impl LifeDriver {
     pub fn new() -> Self {
         // Initialization logic can be added if needed in the future.
         Self
     }
 }
 
-impl SyscallDriver for BasicDriver {
+impl SyscallDriver for LifeDriver {
     /// Control the LEDs.
     ///
     /// ### `command_num`
