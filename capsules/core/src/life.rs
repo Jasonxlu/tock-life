@@ -53,6 +53,7 @@ use kernel::{ErrorCode, ProcessId};
 /// Syscall driver number.
 use crate::driver;
 pub const DRIVER_NUM: usize = driver::NUM::Life as usize;
+pub const LIFE: usize = 42;
 
 /// Implements a basic SyscallDriver without any specific device management.
 pub struct LifeDriver;
@@ -77,12 +78,12 @@ impl SyscallDriver for LifeDriver {
     fn command(&self, command_num: usize, data: usize, _: usize, _: ProcessId) -> CommandReturn {
         match command_num {
             // return the meaning of life
-            0 => CommandReturn::success_u32(42 as u32),
+            0 => CommandReturn::success_u32(LIFE as u32),
 
             // return a failure code if the data is not 42
             1 => {
-                if data != 42 {
-                    CommandReturn::failure(ErrorCode::INVAL) /* led out of range */
+                if data != LIFE {
+                    CommandReturn::failure(ErrorCode::INVAL) /* data is not life */
                 } else {
                     CommandReturn::success()
                 }
