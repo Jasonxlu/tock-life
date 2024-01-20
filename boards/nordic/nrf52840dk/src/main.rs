@@ -476,8 +476,12 @@ pub unsafe fn main() {
         LedLow::new(&nrf52840_peripherals.gpio_port[LED4_PIN]),
     ));
 
-    let life: &'static capsules_core::life::LifeDriver =
-        components::life::LifeComponent::new().finalize(());
+    // let life: &'static capsules_core::life::LifeDriver =
+    //     components::life::LifeComponent::new().finalize(());
+    let life = kernel::static_init!(
+        capsules_core::life::LifeDriver,
+        capsules_core::life::LifeDriver::new()
+    );
 
     //--------------------------------------------------------------------------
     // TIMER
